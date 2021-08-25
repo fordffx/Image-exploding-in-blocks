@@ -1,0 +1,65 @@
+
+import sys
+
+import pygame
+import random
+from pygame.locals import *
+
+
+class Exploding_clip(pygame.sprite.Sprite):
+    def __init__(self, myimage, myrect):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = myimage
+        self.rect = myrect
+
+    def update(self):
+        # y = f(x) ，change it freely
+        x = random.randint(-20, 20)
+        y = random.randint(-1, 1) * x
+        self.rect = self.rect.move(x, y)
+        if self.rect.y < 50 or self.rect.y > 650 or self.rect.x < 50 or self.rect.x > 950:
+            self.kill()
+
+
+pygame.init()
+screen = pygame.display.set_mode((1024, 768))
+pygame.display.set_caption("Image-exploding-in-blocks")
+space = pygame.image.load("image.png").convert_alpha()
+
+img_width = 360
+img_height = 360
+n = 10 
+#cut image into n * n pieces
+start_x = 150
+start_y = 150
+space = pygame.transform.scale(space, (img_width, img_height))
+screen.blit(space, (start_x, start_y))
+exploding_clips = []
+_crop_rect = pygame.Rect(0, 0, 0, 0)
+for i in range(0, n):  # column
+    for j in range(0, n):  # row
+        _crop_rect.left = start_x + j * img_height / n
+        _crop_rect.top = start_y + i * img_width / n
+        _crop_rect.width = img_width / n
+        _crop_rect.height = img_height / n
+        _tmp = Exploding_clip(screen.subsurface(_crop_rect).copy(),
+                              pygame.Rect(_crop_rect.left, _crop_rect.top, img_width / n, img_height / n))
+        exploding_clips.append(_tmp)
+
+exploding_sprites = pygame.sprite.RenderPlain(exploding_clips)
+clock = pygame.time.Clock()
+while True:
+    clock.tick(30)
+    screen.fill((0, 0, 0))
+
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        keys = pygame.key.get_pressed()
+        if keys[K_ESCAPE]:
+            sys.exit()
+
+    exploding_sprites.update()
+    exploding_sprites.draw(screen)
+    pygame.display.flip()
