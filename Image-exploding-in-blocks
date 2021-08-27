@@ -14,12 +14,11 @@ class Exploding_clip(pygame.sprite.Sprite):
 
     def update(self):
         # y = f(x) ，change it freely
-        x = random.randint(-20, 20)
-        y = random.randint(-1, 1) * x
+        x = random.randint(-6, 6)
+        y = random.randint(-1, 1) * x + x * x
         self.rect = self.rect.move(x, y)
-        if self.rect.y < 50 or self.rect.y > 650 or self.rect.x < 50 or self.rect.x > 950:
+        if self.rect.y < 5 or self.rect.y > 768 or self.rect.x < 5 or self.rect.x > 1024:
             self.kill()
-
 
 pygame.init()
 screen = pygame.display.set_mode((1024, 768))
@@ -28,7 +27,7 @@ space = pygame.image.load("image.png").convert_alpha()
 
 img_width = 360
 img_height = 360
-n = 10 
+n = 67 
 #cut image into n * n pieces
 start_x = 150
 start_y = 150
