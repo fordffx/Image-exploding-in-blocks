@@ -1,0 +1,93 @@
+import sys
+import pygame
+import random
+from pygame.locals import *
+from shapely.geometry import Polygon
+
+class Exploding_clip(pygame.sprite.Sprite):
+    def __init__(self, myimage, myrect):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = myimage
+        self.rect = myrect
+        self.moveable = True
+
+    def update(self):
+        global data1, data2
+        data2 = [(100 * (self.rect.left - start_x) / img_width, (100 * (self.rect.top - start_y)) / img_height),
+                 ((100 * (self.rect.left - start_x + img_width / n)) / img_width, (100 * (self.rect.top - start_y)) / img_height),
+                 ((100 * (self.rect.left - start_x + img_width / n)) / img_width, (100 * (self.rect.top - start_y + img_height / n)) / img_height),
+                 ((100 * (self.rect.left - start_x)) / img_width, (100 * (self.rect.top - start_y + img_height / n)) / img_height)]
+        
+        if self.moveable == True:
+            if Cal_area_of_2poly(data1, data2) == 0:
+                x = random.randint(-6, 6)
+                y = random.randint(-1, 1) * x + x * x
+                self.rect = self.rect.move(x, y)
+            else:
+                self.moveable = False
+                # print(self.rect)
+            if self.rect.y < 1 or self.rect.y > 800 or self.rect.x < 1 or self.rect.x > 1200:
+                self.kill()
+
+
+def Cal_area_of_2poly(poly_data_points1, poly_data_points2):
+    poly1 = Polygon(poly_data_points1)
+    poly2 = Polygon(poly_data_points2)
+    if not poly1.intersects(poly2):
+        inter_area = 0        
+    else:
+        inter_area = poly1.intersection(poly2).area        
+    return inter_area
+
+
+global data1, data2
+data1 = [(36, 19), (15, 41), (28, 54), (36, 45), (64, 74), (59, 76), (55, 77), (50, 78), (44, 78), (36, 76), (29, 73), (22, 68), (17, 63), (10, 70),
+         (15, 78), (12, 79), (8, 81), (7, 86), (9, 91), (13, 92), (18, 91), (21, 87), (21, 82), (30, 88), (40, 91), (54, 92), (63, 90), (75, 85),
+         (83, 93), (94, 81), (86, 74), (91, 64), (94, 52), (94, 41), (89, 27), (78, 14), (66, 9), (51, 6), (61, 11), (70, 20), (77, 32), (78, 51),
+         (75, 62), (47, 34), (57, 23), (51, 16), (44, 19)]
+
+data2 = []
+
+window_width = 1200
+window_height = 800
+pygame.init()
+screen = pygame.display.set_mode((window_width, window_height))
+pygame.display.set_caption("Party flag floating within")
+space = pygame.image.load("rc.jpg").convert_alpha()
+
+img_width = 267
+img_height = 267
+n = 133
+start_x = 133
+start_y = 100
+space = pygame.transform.scale(space, (img_width, img_height))
+screen.blit(space, (start_x, start_y))
+exploding_clips = []
+_crop_rect = pygame.Rect(0, 0, 0, 0)
+for i in range(0, n):  # 列
+    for j in range(0, n):  # 行
+        _crop_rect.left = start_x + j * img_height / n
+        _crop_rect.top = start_y + i * img_width / n
+        _crop_rect.width = img_width / n
+        _crop_rect.height = img_height / n
+        _tmp = Exploding_clip(screen.subsurface(_crop_rect).copy(),
+                              pygame.Rect(_crop_rect.left, _crop_rect.top, img_height / n, img_width / n))
+        exploding_clips.append(_tmp)
+
+exploding_sprites = pygame.sprite.RenderPlain(exploding_clips)
+clock = pygame.time.Clock()
+while True:
+    clock.tick(25)
+    screen.fill((206, 17, 38))
+
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        keys = pygame.key.get_pressed()
+        if keys[K_ESCAPE]:
+            sys.exit()
+
+    exploding_sprites.update()
+    exploding_sprites.draw(screen)
+    pygame.display.flip()
